@@ -1,24 +1,30 @@
-# matrix-appservice-verto
-A Matrix &lt;--> Verto bridge, designed for conferencing.
+# matrix-appservice-respoke
+
+An incredibly hacky Matrix --> Asterisk bridge via chan_respoke.
+
+The initial version of this is hacked from a (very) early version of matrix-appservice-verto,
+before that bridge became all about conferencing.  The implementation is independent of any
+existing documentation or code for respoke other than chan_respoke, mainly because it was
+hacked together on VS27 which has no in-flight wifi.  Did I mention that it's hacky?
 
 ## Usage
 
 ### Installing
 ```
-$ git clone git@github.com:matrix-org/matrix-appservice-verto.git
-$ cd matrix-appservice-verto
+$ git clone git@github.com:matrix-org/matrix-appservice-respoke.git
+$ cd matrix-appservice-respoke
 $ npm install
 ```
 
 ### Registering
 ```
 $ node app -r -u "http://appservice-url-here"
-Generating registration to 'config/verto-registration.yaml' for the AS accessible from: http://appservice-url-here
+Generating registration to 'config/respoke-registration.yaml' for the AS accessible from: http://appservice-url-here
 ```
-Add `verto-registration.yaml` to Synapse's `homeserver.yaml` config file:
+Add `respoke-registration.yaml` to Synapse's `homeserver.yaml` config file:
 ```
 # homeserver.yaml
-app_service_config_files: ["/path/to/matrix-appservice-verto/config/verto-registration.yaml"]
+app_service_config_files: ["/path/to/matrix-appservice-respoke/config/respoke-registration.yaml"]
 ```
 
 ### Configuring
@@ -31,27 +37,30 @@ $ cp config/config.sample.yaml config/config.yaml
 homeserver:
   url: http://localhost:8008
   domain: localhost
-
-verto:
-  url: "ws://freeswitch.url.here:8081/"
-  passwd: "1234567890"
-
-verto-dialog-params:
-  login: "1008@freeswitch.url.here"
-  ...
 ```
+
+### Configuring Asterisk
+
+Just set up chan_respoke as normal, but point chan_respoke at this bridge rather than api.respoke.io - e.g.
+```
+[transport_t](!)
+uri=http://localhost:3000
+```
+
+### Limitations
+
+ * There is *NO AUTH* of chan_respoke at all yet - the bridge ignores your app ID and secret ID
+ * Calls are one-way from matrix to asterisk only
+ * Matrix clients currently are considered as a single respoke endpoint
+ * The code is a bodgy mess
+ * It barely works at all
 
 ### Running
 ```
 $ node app -c config/config.yaml
-Loading config file /path/matrix-appservice-verto/config/config.yaml
-[ws://freeswitch.url.here:8081/]: OPENED
-[ws://freeswitch.url.here:8081/]: SENDING {"jsonrpc":"2.0","method":"login","params":{"login":"1008@freeswitch.url.here","passwd":"1234567890","sessid":"af5cc400-811c-4c5b-896a-25be7b413f5f"},"id":1}
-
-[ws://freeswitch.url.here:8081/]: MESSAGE {"jsonrpc":"2.0","id":1,"result":{"message":"logged in","sessid":"af5cc400-811c-4c5b-896a-25be7b413f5f"}}
-
-Running bridge on port 8090
-
+Loading config file /path/matrix-appservice-respoke/config/config.yaml
+   info  - socket.io started
+   Running bridge on port 8090
 ```
 
-You can supply `-p PORT` to set a custom port.
+You can supply `-p PORT` to set a custom port for the appservice to listen on.
