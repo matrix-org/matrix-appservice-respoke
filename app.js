@@ -279,9 +279,6 @@ RespokeEndpoint.prototype.listen = function() {
 
         console.log("[%s]: OPENED", connection.ip);
 
-        // make it look like we got a connections request from asterisk...
-        connectionIdsByEndpointId['echo'] = connection.id;
-
         socket.on('post', function(message, ack) {
             console.log("[%s]: EVENT %s\n", self.url, message);
             var jsonMessage;
